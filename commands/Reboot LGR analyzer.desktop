@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Terminal=false
+Icon[en_US]=mate
+Name[en_US]=Reboot LGR analyzer
+Exec=mate-terminal -e 'ssh lgr "sudo /sbin/reboot"'
+Name=Reboot LGR analyzer
+Icon=/usr/share/pixmaps/gksu-root-terminal.png
