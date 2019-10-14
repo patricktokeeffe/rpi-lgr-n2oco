@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Terminal=false
+Icon[en_US]=mate-panel-launcher
+Name[en_US]=Change local timezone
+Exec=gksu "mate-terminal -e 'dpkg-reconfigure tzdata'"
+Comment[en_US]=Update the local computer timezone
+Name=Change local timezone
+Comment=Update the local computer timezone
+Icon=/usr/share/pixmaps/gksu-root-terminal.png
