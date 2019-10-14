@@ -1,0 +1,13 @@
+[Unit]
+Description=LGR to influxdb data recording service
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/lgr2influx.py
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target
+

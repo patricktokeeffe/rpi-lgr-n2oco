@@ -156,9 +156,18 @@ ntpq -pn 10.42.0.174
 
 ## Grafana
 
-Install Grafana for local data visualization. 
+[Install](https://grafana.com/docs/installation/debian/) Grafana for local data
+visualization. Add the Grafan repo to get the latest version with alerting:
 ```
+sudo add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
+wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
+sudo apt update
 sudo apt install grafana -y
+```
+
+Enable & start the system service:
+```
+sudo systemctl enable grafana-server
 ```
 
 Do initial setup
@@ -166,6 +175,7 @@ Do initial setup
 * Login to <http://localhost:3000/> with default user (admin/admin)
 * --> setup InfluxDB with test database
 * Add influxdb as data source and test... OK!
+* update admin username/email to lab generic
 
 
 
@@ -182,23 +192,21 @@ Do setup:
 	* create new DB: `CREATE DATABASE lgrtest1`
 	* create admin user (reqd to enable auth, which is reqd for grafana): 
 	  `CREATE USER lar WITH PASSWORD 'losgatosn2oco' WITH ALL PRIVILEGES`
-	* (that's enough, exit for now)
 * Modify `/etc/influxdb/influxdb.conf` to enable auth, then restart service:
   ```diff
   -  auth-enabled = false
   +  auth-enabled = true
   ```
 * Now continue with grafana setup...
-* Now feed data in with Python3:
+* No, do not use `pip` or `pip3` because they will fuck up your Python package
+  permissions. instead, install package using apt
   ```
-  pip3 install influxdb
+  sudo apt install python3-influxdb
   ```
-
-
-
-## Telegraf
-
-
+* apt gives very old version. now use *pip3* to upgrade to 5.x:
+  ```
+  sudo -H pip3 install --upgrade influxdb
+  ```
 
 
 ## Launchers
@@ -280,6 +288,42 @@ productid = "0002"
 questions to answer:
 * does load.off.delay also turn off ups?
 * does restoring power with load off restore loads?
+
+
+
+
+## Watchdog
+
+> Should do this sooner, since InfluxDB+Chromium tends to crash the machine
+> (because chrome sucks at memory management)
+
+```
+sudo nano /boot/config.txt
+```
+```diff
+-#dtparam=watchdog=off
++dtparam=watchdog=on
+```
+```
+sudo reboot
+```
+
+```
+sudo apt install watchdog -y
+sudo bash -c "cp /lib/systemd/system/watchdog.service /etc/systemd/system/ > echo 'WantedBy=multi-user.target' >> /etc/systemd/system/watchdog.service"
+sudo reboot
+
+```
+sudo nano /etc/watchdog.conf
+```
+* enable (uncommment) some tests
+* fix/specify watchdog-timeout value (https://www.raspberrypi.org/forums/viewtopic.php?t=147501)
+
+
+
+
+
+
 
 
 
