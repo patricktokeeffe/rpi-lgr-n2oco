@@ -102,13 +102,13 @@ def main():
         while True:
             try:
                 rec = ser.readline()
-                print("Received serial record:\n{}".format(rec.decode()))
+                #print("Received serial record:\n{}".format(rec.decode()))
 
                 data = [v.decode().strip() for v in rec.split(b',')]
                 assert len(data) == len(LGR_COLUMNS)
 
                 msmt = build_influx_report(data)
-                print("Sending measurement to influxdb:\n{}".format(msmt))
+                #print("Sending measurement to influxdb:\n{}".format(msmt))
                 db.write(msmt, params={'db': INFLUX_DB}, protocol='line')
 
             except (KeyboardInterrupt, SystemExit):

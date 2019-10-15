@@ -114,7 +114,7 @@ Should follow up here:
 
 ## Linking to LGR unit
 
-* Just assume LGR will always get same DHCP address, 10.42.0.174
+* give LGR static IP address, 10.42.0.10 -> also specify gateway
 * On LGR, temporarily ENable ssh password login
 * On RPi:
 	* Generate local ssh creds (`ssh-keygen`)
@@ -263,15 +263,19 @@ in launchers (and do not choose application in terminal): `mate-terminal -e '<cm
 	* maybe: increase the `FINALDELAY` param
 
 
-* use NUT-Monitor and admin user creds to modify UPS variables: `upsrw <upsname>`
-	* battery.charge.low = 40 (%)
-	* battery.runtime.low = 600 (sec)
+* ~~use NUT-Monitor and admin user creds to modify UPS variables: `upsrw <upsname>`~~
+    * UPS does not retain settings changes after power loss..
+* since UPS lacks advanced power reset features and LGR doesn't have ACPI,
+  defaults are prob best so UPS is essentially drained before shutdown occurs
 
 
-* the Back-UPS model will drain out battery instead of killing power 
+* the Back-UPS model will drain out battery instead of killing power
   [ref](https://forums.apc.com/spaces/4/back-ups-surge-protectors/forums/general/88936/how-to-automatically-shutdown-ups-after-server-shutdown)
 	* because extra cmds prob reqd, restrict this config to specific APC unit:
 	  use `lsusb` to identify vendor/product ids, then add to `ups.conf`:
+
+* APC says PowerChute Personal edition applies to Back-UPS, and that after 1 or 2
+  minutes the UPS will shut itself off after hibernating computers
 
 ```
 vendorid = "051d"
@@ -288,6 +292,26 @@ productid = "0002"
 questions to answer:
 * does load.off.delay also turn off ups?
 * does restoring power with load off restore loads?
+
+
+required configuration for LGR analyzer:
+* must have static IP address, for reliable ssh command sending
+* create separate ssh key for root login (-> `/var/lib/nut/.ssh/id_rsa`)
+```
+sudo -u nut ssh-keygen
+```
+* must have root ssh login enabled (so can send `shutdown -h` command)
+    * so temporarily enable password login
+    * and also permanently enable root ssh login
+    * configure nut service for root login
+```
+sudo ssh-copy-id -i /var/lib/nut/.ssh/id_rsa root@10.42.0.10
+```
+    * then re-disable passwords login
+* ...can take up to 15 entire seconds to flush to disk and display safe shutdown OK
+    * so bump FINAL_DELAY 5 -> 20 seconds
+    * and trigger shutdown LGR command at any of FSD,  SHUTDOWN, LOWBATT flags
+
 
 
 
