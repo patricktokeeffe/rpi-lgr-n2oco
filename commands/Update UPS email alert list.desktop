@@ -1,0 +1,13 @@
+#!/usr/bin/env xdg-open
+
+[Desktop Entry]
+Version=1.0
+Type=Application
+Terminal=false
+Icon[en_US]=al
+Name[en_US]=Update UPS email alert list
+Exec=gksu pluma /etc/aliases
+Comment[en_US]=Edit the system alias list
+Name=Update UPS email alert list
+Comment=Edit the system alias list
+Icon=/usr/share/icons/Humanity/apps/48/accessories-text-editor.svg
