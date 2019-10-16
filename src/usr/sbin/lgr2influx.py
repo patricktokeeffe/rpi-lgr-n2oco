@@ -7,7 +7,7 @@
 # Washington State University
 
 import serial
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from influxdb import InfluxDBClient
 
  
@@ -28,6 +28,7 @@ INFLUX_DB = 'lgrtest1'
 
 # LGR data output configuration
 LGR_DATEFMT = "%m/%d/%y"  # mm/dd/yy, the 'American' default style
+LGR_TIMEZONE = -8         # offset from UTC in hours, HINT: not posix inverted
 LGR_COLUMNS = ["Time", 
                 "CO_ppm", 
                 "CO_ppm_se",
@@ -58,7 +59,10 @@ LGR_COLUMNS = ["Time",
 
 def parse_lgr_timestamp(date_str, date_fmt):
     """Convert LGR time, assumed American format, into InfluxDB ns timestamp"""
-    posix_time = datetime.strptime(date_str, date_fmt+" %H:%M:%S.%f").timestamp()
+    #posix_time = datetime.strptime(date_str, date_fmt+" %H:%M:%S.%f").timestamp()
+    #### strptime( -1hr offset w/o tzstr ) -> timestamp( in local tz ) -> -1hr behind
+    posix_time = datetime.strptime(date_str, date_fmt+" %H:%M:%S.%f").replace(
+                    tzinfo=timezone(timedelta(hours=LGR_TIMEZONE))).timestamp()
     return int(posix_time * 1e9)
 
 
