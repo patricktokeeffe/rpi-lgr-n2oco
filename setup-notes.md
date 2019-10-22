@@ -191,7 +191,7 @@ Do setup:
 * Launch command line shell: `influx` (reqs installing `influxdb-client`)
 	* create new DB: `CREATE DATABASE lgrtest1`
 	* create admin user (reqd to enable auth, which is reqd for grafana): 
-	  `CREATE USER lar WITH PASSWORD 'losgatosn2oco' WITH ALL PRIVILEGES`
+	  `CREATE USER lgr WITH PASSWORD 'losgatosn2oco' WITH ALL PRIVILEGES`
 * Modify `/etc/influxdb/influxdb.conf` to enable auth, then restart service:
   ```diff
   -  auth-enabled = false
@@ -207,6 +207,39 @@ Do setup:
   ```
   sudo -H pip3 install --upgrade influxdb
   ```
+
+Optimizing influxdb resource usage:
+* inside `/etc/influxdb/influxdb.conf`:
+    * ~~disable metaservice/raft group participation~~
+        * this will break influxdb, possibly permanently (e.g. data reset possibly fixes)
+    * ~~change `query-log-enabled` to `false`~~
+* update to latest version instead: https://docs.influxdata.com/influxdb/v1.7/introduction/installation/
+```
+wget -qO- https://repos.influxdata.com/influxdb.key | sudo apt-key add -
+source /etc/lsb-release
+echo "deb https://repos.influxdata.com/${DISTRIB_ID,,} ${DISTRIB_CODENAME} stable" | sudo tee /etc/apt/sources.list.d/influxdb.list
+sudo apt update
+```
+
+before installing, backup existing data and conf then purge old packages
+```
+sudo cp -r /var/lib/influxdb /var/backups/influxdb-0.10.0-1
+sudo cp /etc/influxdb/influxdb.conf /var/backups/influxdb-0.10.0-1.conf
+sudo apt remove influxdb influxdb-client
+sudo apt autoclean
+```
+
+OK now finally install, then ignore any dpkg errors (because should not be any),
+and enable at boot by unmasking:
+```
+sudo apt install influxdb
+sudo systemctl unmask influxdb.service
+```
+
+OK! now recreate users and database expected by DAQ script...
+
+
+
 
 
 ## Launchers
