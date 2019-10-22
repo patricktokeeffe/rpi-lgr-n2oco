@@ -238,6 +238,14 @@ sudo systemctl unmask influxdb.service
 
 OK! now recreate users and database expected by DAQ script...
 
+Optimize influx for low resource usage:
+* disable logging for metaservice (meta section)
+* disable query logging (in data section)
+* disable internal monitoring service (monitor -> store-enabled=false)
+* disable request logging (http section)
+* suppress write request logging (http section)
+* increase log level from info->warn (logging section)
+
 
 
 
