@@ -344,7 +344,20 @@ sudo nano /etc/watchdog.conf
 * fix/specify watchdog-timeout value (https://www.raspberrypi.org/forums/viewtopic.php?t=147501)
 
 
+## fail2ban
 
+To prevent log flooding, which causes unecessary SD card writes, install `fail2ban`:
+```
+sudo apt install fail2ban
+sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+sudo nano /etc/fail2ban/jail.local
+```
+
+* add IP exclusions, if desired
+* enable ssh jail: `enabled = true` under `[sshd]`
+    * add `filter = sshd` statement as well
+
+Restart service.
 
 
 
