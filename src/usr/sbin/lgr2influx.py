@@ -7,6 +7,7 @@
 # Washington State University
 
 import serial
+from time import sleep
 from datetime import datetime, timezone, timedelta
 from influxdb import InfluxDBClient
 
@@ -17,14 +18,14 @@ SERIAL_BAUD = 115200
 SERIAL_BYTE = 8
 SERIAL_PARITY = 'N'
 SERIAL_STOP = 1
-SERIAL_TIMEOUT = 1 #seconds
+SERIAL_TIMEOUT = 5 #seconds
 
 # Influx DB parameters
 INFLUX_HOST = '127.0.0.1'
 INFLUX_PORT = 8086
 INFLUX_USER = 'lgr'
 INFLUX_PASS = 'influxuserpassword'
-INFLUX_DB = 'lgrtest1'
+INFLUX_DB = 'losgatosn2oco'
 
 # LGR data output configuration
 LGR_DATEFMT = "%m/%d/%y"  # mm/dd/yy, the 'American' default style
@@ -114,6 +115,8 @@ def main():
                 msmt = build_influx_report(data)
                 #print("Sending measurement to influxdb:\n{}".format(msmt))
                 db.write(msmt, params={'db': INFLUX_DB}, protocol='line')
+
+                sleep(0.050) # apparently serial timeout isn't enough..
 
             except (KeyboardInterrupt, SystemExit):
                 ser.close()
