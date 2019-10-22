@@ -354,6 +354,16 @@ sudo ssh-copy-id -i /var/lib/nut/.ssh/id_rsa root@10.42.0.10
     * and trigger shutdown LGR command at any of FSD,  SHUTDOWN, LOWBATT flags
 
 
+> 2019-10-21
+>
+> Continue to get COMMBAD emails for no particular reason. Device still listed
+> under `lsusb` and `usb-devices`. No error messages found in *dmesg* or *syslog*
+> output. Do observe a possibly abandoned process using `ps aux | grep usbhid-ups`
+>
+> To hopefully fix, set driver param to query every 15s not alleged default of 30s
+> and also set DEADTIME from 15->20 seconds in `/etc/nut/upsmon.conf`. Then
+> restart both client & server services.
+
 
 
 
