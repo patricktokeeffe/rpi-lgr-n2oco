@@ -11,7 +11,9 @@ from time import sleep
 from datetime import datetime, timezone, timedelta
 from influxdb import InfluxDBClient
 
- 
+# To see data messages in logs, set True
+DEBUG = False
+
 # Serial port details
 SERIAL_PORT = '/dev/ttyUSB0'
 SERIAL_BAUD = 115200
@@ -28,10 +30,11 @@ INFLUX_PASS = 'influxuserpassword'
 INFLUX_DB = 'losgatosn2oco'
 
 # LGR data output configuration
+LGR_SERIALNO = "13-0199"  # string serial number, nn-nnnn
 LGR_DATEFMT = "%m/%d/%y"  # mm/dd/yy, the 'American' default style
 LGR_TIMEZONE = -8         # offset from UTC in hours, HINT: not posix inverted
-LGR_COLUMNS = ["Time", 
-                "CO_ppm", 
+LGR_COLUMNS = ["Time",
+                "CO_ppm",
                 "CO_ppm_se",
                 "N2O_ppm",
                 "N2O_ppm_se",
@@ -60,8 +63,6 @@ LGR_COLUMNS = ["Time",
 
 def parse_lgr_timestamp(date_str, date_fmt):
     """Convert LGR time, assumed American format, into InfluxDB ns timestamp"""
-    #posix_time = datetime.strptime(date_str, date_fmt+" %H:%M:%S.%f").timestamp()
-    #### strptime( -1hr offset w/o tzstr ) -> timestamp( in local tz ) -> -1hr behind
     posix_time = datetime.strptime(date_str, date_fmt+" %H:%M:%S.%f").replace(
                     tzinfo=timezone(timedelta(hours=LGR_TIMEZONE))).timestamp()
     return int(posix_time * 1e9)
@@ -69,7 +70,7 @@ def parse_lgr_timestamp(date_str, date_fmt):
 
 def build_influx_report(data):
     """Construct influxdb line protocol message from LGR data list"""
-    prefix = "lgr"#,serialno=13-0199"
+    prefix = "lgr,serialno={}".format(LGR_SERIALNO)
     timestamp = parse_lgr_timestamp(data[0], LGR_DATEFMT)
     vals = []
     for i in range(1, len(data)):
@@ -88,7 +89,7 @@ def main():
                         username=INFLUX_USER, password=INFLUX_PASS,
                         database=INFLUX_DB)
     print("Connected. Database version is {}".format( db.ping() ))
-    
+
 
     with serial.Serial() as ser:
         ser.port=SERIAL_PORT
@@ -102,52 +103,44 @@ def main():
                        SERIAL_STOP, SERIAL_TIMEOUT))
         ser.open()
         ser.flush()
-        print("Connected and listening for data...")
+        print("Connected and reporting data...")
+        if not DEBUG:
+            print("To view data messages, try the influxdb logs: `sudo journalctl -f -u influxdb`")
 
         while True:
             try:
                 rec = ser.readline()
-                #print("Received serial record:\n{}".format(rec.decode()))
+                if DEBUG:
+                    print("Received serial record:\n{}".format(rec.decode()))
 
                 data = [v.decode().strip() for v in rec.split(b',')]
                 assert len(data) == len(LGR_COLUMNS)
 
                 msmt = build_influx_report(data)
-                #print("Sending measurement to influxdb:\n{}".format(msmt))
+                if DEBUG:
+                    print("Sending measurement to influxdb:\n{}".format(msmt))
                 db.write(msmt, params={'db': INFLUX_DB}, protocol='line')
 
-                sleep(0.050) # apparently serial timeout isn't enough..
+                sleep(0.050)
 
             except (KeyboardInterrupt, SystemExit):
+                print("Received exit signal. Closing serial port...")
                 ser.close()
+                print("Exiting...")
                 raise
+            except AssertionError:
+                if DEBUG:
+                    print("Received partial/malformed serial record. Skipping...")
+                sleep(0.050)
+                continue
             except Exception as e:
                 import traceback
                 print("Avoiding potentially fatal error:\n{}".format(traceback.format_exc()))
+                sleep(5) # avoid flooding logs
                 continue
 
 
 if __name__=="__main__":
     main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
